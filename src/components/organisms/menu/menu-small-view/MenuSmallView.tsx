@@ -29,8 +29,9 @@ export const MenuSmallView = () => {
   }
 
   const onSeeMore = () => {
-    setPage(page + 1);
-    setCanSeeMore(page * pageSize < menuItems
+    const newPage = page + 1;
+    setPage(newPage);
+    setCanSeeMore(newPage * pageSize < menuItems
       .filter(item => item.category === selectedCategory).length);
   }
 
