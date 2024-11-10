@@ -1,6 +1,9 @@
 import style from './Footer.module.css';
+import {EPages} from "../../../@types/EPages.ts";
+import {observer} from "mobx-react-lite";
+import {navigationStore} from "../../../stores/NavigationStore.ts";
 
-export const Footer = () => {
+export const Footer = observer(() => {
   return (
     <div className={style.footer}>
       <div className={['wrapper', style.footer__wrapper].join(' ')}>
@@ -14,22 +17,22 @@ export const Footer = () => {
           </div>
           <div className={style.footer__menu__columns}>
             <div className={style.footer__menu__columns__item}>
-              <div className={style.footer__menu__columns__item__title}>company</div>
-              <div className={style.footer__menu__columns__item__row}>Home</div>
-              <div className={style.footer__menu__columns__item__row}>Order</div>
-              <div className={style.footer__menu__columns__item__row}>FAQ</div>
-              <div className={style.footer__menu__columns__item__row}>Contact</div>
+              <span className={style.footer__menu__columns__item__title}>company</span>
+              <a href={EPages.HOME} onClick={() => navigationStore.setActiveItem(EPages.HOME)} className={style.footer__menu__columns__item__row}>Home</a>
+              <a href={EPages.ORDER} onClick={() => navigationStore.setActiveItem(EPages.ORDER)} className={style.footer__menu__columns__item__row}>Order</a>
+              <a href={EPages.FAQ} onClick={() => navigationStore.setActiveItem(EPages.FAQ)} className={style.footer__menu__columns__item__row}>FAQ</a>
+              <a href={EPages.CONTACT} onClick={() => navigationStore.setActiveItem(EPages.CONTACT)} className={style.footer__menu__columns__item__row}>Contact</a>
             </div>
             <div className={style.footer__menu__columns__item}>
-              <div className={style.footer__menu__columns__item__title}>TEMPLATE</div>
-              <div className={style.footer__menu__columns__item__row}>Style Guide</div>
-              <div className={style.footer__menu__columns__item__row}>Changelog</div>
-              <div className={style.footer__menu__columns__item__row}>Licence</div>
-              <div className={style.footer__menu__columns__item__row}>Webflow University</div>
+              <span className={style.footer__menu__columns__item__title}>TEMPLATE</span>
+              <a href="https://google.com/" target="_blank" className={style.footer__menu__columns__item__row}>Style Guide</a>
+              <a href="https://google.com/" target="_blank" className={style.footer__menu__columns__item__row}>Changelog</a>
+              <a href="https://google.com/" target="_blank" className={style.footer__menu__columns__item__row}>Licence</a>
+              <a href="https://google.com/" target="_blank" className={style.footer__menu__columns__item__row}>Webflow University</a>
             </div>
             <div className={style.footer__menu__columns__item}>
-              <div className={style.footer__menu__columns__item__title}>FLOWBASE</div>
-              <div className={style.footer__menu__columns__item__row}>More Cloneables</div>
+              <span className={style.footer__menu__columns__item__title}>FLOWBASE</span>
+              <a href="https://google.com/" target="_blank" className={style.footer__menu__columns__item__row}>More Cloneables</a>
             </div>
           </div>
         </div>
@@ -55,4 +58,4 @@ export const Footer = () => {
       </div>
     </div>
   )
-}
+});
