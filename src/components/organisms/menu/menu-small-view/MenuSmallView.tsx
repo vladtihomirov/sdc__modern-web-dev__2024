@@ -1,98 +1,79 @@
-import { Component } from 'react';
-import { Tabs } from '../../../moleculas/tabs/Tabs';
+import {Tabs} from '../../../moleculas/tabs/Tabs';
 import styles from './MenuSmallView.module.css';
-import { IMenuItem } from '../../../../@types/IMenuItem.ts';
-import { MenuService } from '../../../../services/MenuService.ts';
-import { MenuGrid } from '../menu-grid/MenuGrid.tsx';
-import { Button } from '../../../atoms/button/Button.tsx';
+import {useEffect, useState} from "react";
+import {IMenuItem} from "../../../../@types/IMenuItem.ts";
+import {MenuGrid} from "../menu-grid/MenuGrid.tsx";
+import {Button} from "../../../atoms/button/Button.tsx";
+import {useGetData, useJSONData} from "../../../../hooks/fetch.ts";
 
-type MenuSmallViewState = {
-  categories: string[];
-  menuItems: IMenuItem[];
-  filteredMenuItems: IMenuItem[];
-  selectedCategory: string;
-  page: number;
-  canSeeMore: boolean;
-};
+export const MenuSmallView = () => {
+  const {
+    data: menuItems,
+    error: menuItemsError,
+    loading: menuItemsLoading
+  } = useGetData<IMenuItem[]>('meals', []);
+  const {
+    data: categories,
+    error: categoriesError,
+    loading: categoriesLoading
+  } = useJSONData<string[]>('categories', []);
 
-export class MenuSmallView extends Component<object, MenuSmallViewState> {
-  pageSize = 6;
+  const pageSize = 6;
+  const [filteredMenuItems, setFilteredMenuItems] = useState<IMenuItem[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [page, setPage] = useState(1);
+  const [canSeeMore, setCanSeeMore] = useState(true);
 
-  constructor(props: object) {
-    super(props);
-    this.state = {
-      categories: [],
-      menuItems: [],
-      filteredMenuItems: [],
-      selectedCategory: '',
-      page: 1,
-      canSeeMore: true,
-    };
+  const filterMenu = (tab: string) => {
+    setFilteredMenuItems(menuItems.filter(item => item.category === tab));
   }
 
-  componentDidMount() {
-    MenuService.getCategories().then((fetchedCategories) => {
-      this.setState({
-        categories: fetchedCategories,
-        selectedCategory: fetchedCategories[0],
-      });
-      this.filterMenu(fetchedCategories[0]);
-    });
-    MenuService.getMenuItems().then((menuItems) => this.setState({ menuItems }));
-  }
-
-  componentDidUpdate(_prevProps: object, prevState: MenuSmallViewState) {
-    const { menuItems, page, selectedCategory } = this.state;
-    if (
-      menuItems !== prevState.menuItems ||
-      page !== prevState.page ||
-      selectedCategory !== prevState.selectedCategory
-    ) {
-      this.setState({
-        filteredMenuItems: menuItems
-          .filter((item) => item.category === selectedCategory)
-          .slice(0, page * this.pageSize),
-      });
+  const selectCategory = (tab: string) => {
+    if (tab !== selectedCategory) {
+      setSelectedCategory(tab);
+      setPage(1);
+      setCanSeeMore(true);
+      filterMenu(tab);
     }
   }
 
-  filterMenu = (category: string) => {
-    this.setState({
-      filteredMenuItems: this.state.menuItems.filter((item) => item.category === category),
-    });
-  };
-
-  selectCategory = (category: string) => {
-    if (category !== this.state.selectedCategory) {
-      this.setState({
-        selectedCategory: category,
-        page: 1,
-        canSeeMore: true,
-      });
-      this.filterMenu(category);
-    }
-  };
-
-  onSeeMore = () => {
-    const newPage = this.state.page + 1;
-    const itemsInCategory = this.state.menuItems.filter(
-      (item) => item.category === this.state.selectedCategory
-    ).length;
-    this.setState({
-      page: newPage,
-      canSeeMore: newPage * this.pageSize < itemsInCategory,
-    });
-  };
-
-  render() {
-    const { categories, filteredMenuItems, selectedCategory, canSeeMore } = this.state;
-
-    return (
-      <div className={styles.menuSmallView}>
-        <Tabs initialTabs={categories} selectedTab={selectedCategory} onSelect={this.selectCategory} />
-        <MenuGrid menuItems={filteredMenuItems} />
-        {canSeeMore && <Button onClick={this.onSeeMore}>See more</Button>}
-      </div>
-    );
+  const onSeeMore = () => {
+    const newPage = page + 1;
+    setPage(newPage);
+    setCanSeeMore(newPage * pageSize < menuItems
+      .filter(item => item.category === selectedCategory).length);
   }
+
+  useEffect(() => {
+    if (selectedCategory) {
+      setFilteredMenuItems(menuItems
+        .filter(item => item.category === selectedCategory)
+        .slice(0, page * pageSize)
+      );
+    }
+  }, [menuItems, page, selectedCategory]);
+
+  useEffect(() => {
+    if (categories && categories.length > 0) {
+      setSelectedCategory(categories[0]);
+    }
+  }, [categories]);
+
+  return (
+    <div className={styles.menuSmallView}>
+      {categoriesLoading && <p>Loading categories...</p>}
+      {categoriesError && <p>Error loading categories: {categoriesError}</p>}
+      {categories && !categoriesError && !categoriesLoading &&
+          <Tabs initialTabs={categories} selectedTab={selectedCategory} onSelect={selectCategory}/>
+      }
+      {menuItemsLoading && <p>Loading menu items...</p>}
+      {menuItemsError && <p>Error loading menu items: {menuItemsError}</p>}
+      {menuItems && !menuItemsError && !menuItemsLoading &&
+          <>
+              <MenuGrid menuItems={filteredMenuItems}/>
+            {canSeeMore && <Button onClick={onSeeMore}>See more</Button>}
+          </>
+      }
+    </div>
+  )
 }
